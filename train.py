@@ -10,10 +10,10 @@ from torch import nn, optim
 import os
 
 
-def load_data_image(data_directory):
-    train_dir = os.path.join(data_directory, "train")
-    valid_dir = os.path.join(data_directory, "valid")
-    test_dir = os.path.join(data_directory, "test")
+def load_data_image(data_dir):
+    train_dir = os.path.join(data_dir, "train")
+    valid_dir = os.path.join(data_dir, "valid")
+    test_dir = os.path.join(data_dir, "test")
     # TODO: Define your transforms for the training, validation, and testing sets
     training_transform = transforms.Compose(
         [
@@ -77,8 +77,8 @@ def load_data_image(data_directory):
     return {"data": dataloaders, "training_folder": training_image_folder}
 
 
-def train(epochs, hidden_units, model_arch, learning_rate):
-    load_data = load_data_image(data_directory=data_directory)
+def train(data_dir, epochs, hidden_units, model_arch, learning_rate):
+    load_data = load_data_image(data_dir=data_dir)
     dataloaders = load_data["data"]
     # TODO: Build and train your network
     # TODO: Build and train your network
@@ -93,10 +93,10 @@ def train(epochs, hidden_units, model_arch, learning_rate):
         param.requires_grad = False
 
     model.classifier = nn.Sequential(
-        nn.Linear(25088, 2048, bias=True),
+        nn.Linear(25088, hidden_units, bias=True),
         nn.ReLU(inplace=True),
         nn.Dropout(p=0.2),
-        nn.Linear(2048, 256, bias=True),
+        nn.Linear(hidden_units, 256, bias=True),
         nn.ReLU(inplace=True),
         nn.Dropout(p=0.2),
         nn.Linear(256, 102, bias=True),
@@ -107,12 +107,8 @@ def train(epochs, hidden_units, model_arch, learning_rate):
     device = torch.device("cuda")
     model.to(device)
 
-    print(device)
-
     # Optimizer
-    optimizer = optim.Adam(
-        model.classifier.parameters(), lr=learning_rate, hidden_units=hidden_units
-    )
+    optimizer = optim.Adam(model.classifier.parameters(), lr=learning_rate)
     criterion = nn.NLLLoss()
 
     current = 0
@@ -260,7 +256,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Add argument
-    parser.add_argument(dest="data_directory")
+    parser.add_argument(dest="data_dir", type=str)
     parser.add_argument(
         "--model_arch",
         dest="model_arch",
@@ -276,14 +272,14 @@ if __name__ == "__main__":
 
     # Parse
     args = parser.parse_args()
-    data_directory = args.data_directory
+    data_dir = args.data_dir
     model_arch = args.model_arch
     epochs = args.epochs
     hidden_units = args.hidden_units
     learning_rate = args.learning_rate
 
     train(
-        data_directory=data_directory,
+        data_dir=data_dir,
         epochs=epochs,
         hidden_units=hidden_units,
         model_arch=model_arch,

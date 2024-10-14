@@ -145,7 +145,7 @@ def exec_predict(image_path, model_path, topk, gpu, category):
         cat_to_name = json.load(f)
 
     # Load model
-    model = load_checkpoint("checkpoint.pth")
+    model = load_checkpoint(model_path)
     device = torch.device("cuda" if torch.cuda.is_available() and gpu == 1 else "cpu")
     model = model.to(device)
 
@@ -165,9 +165,7 @@ def exec_predict(image_path, model_path, topk, gpu, category):
     image = process_image(image=img_path)
 
     # Predict image
-    top_ps, top_classes = predict(
-        image_path, model_path, cat_to_name=cat_to_name, topk=topk
-    )
+    top_ps, top_classes = predict(image_path, model, cat_to_name=cat_to_name, topk=topk)
 
     print("Predictions:")
     for i in range(topk):
